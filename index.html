@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AwareOS</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #1a1a2e;
+        color: #eee;
+        min-height: 100vh;
+        padding: 40px;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+      }
+
+      .subtitle {
+        color: #888;
+        margin-bottom: 40px;
+      }
+
+      .status {
+        background: #252540;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .status-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #333;
+      }
+
+      .status-item:last-child {
+        border-bottom: none;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #10b981;
+        display: inline-block;
+        margin-right: 10px;
+      }
+
+      .status-dot.inactive {
+        background: #f59e0b;
+      }
+
+      .instructions {
+        background: #16162a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .instructions h2 {
+        font-size: 1rem;
+        margin-bottom: 15px;
+        color: #4a9eff;
+      }
+
+      code {
+        background: #252540;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+
+      pre {
+        background: #252540;
+        padding: 15px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 10px 0;
+        font-size: 0.85rem;
+      }
+
+      .event-log {
+        background: #16162a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 20px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .event-log h2 {
+        font-size: 1rem;
+        margin-bottom: 15px;
+        color: #4a9eff;
+      }
+
+      .event-item {
+        padding: 8px;
+        margin-bottom: 5px;
+        background: #252540;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-family: monospace;
+      }
+
+      .event-item .event-name {
+        color: #10b981;
+      }
+
+      .event-item .event-time {
+        color: #666;
+        font-size: 0.75rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🧠 AwareOS</h1>
+      <p class="subtitle">Local-first, AI-orchestrated operating environment</p>
+
+      <div class="status" id="statusPanel">
+        <div class="status-item">
+          <span><span class="status-dot" id="eventBusStatus"></span>Event Bus</span>
+          <span id="eventBusLabel">Loading...</span>
+        </div>
+        <div class="status-item">
+          <span><span class="status-dot" id="registryStatus"></span>Registry</span>
+          <span id="registryLabel">Loading...</span>
+        </div>
+        <div class="status-item">
+          <span><span class="status-dot" id="contextStatus"></span>Context Store</span>
+          <span id="contextLabel">Loading...</span>
+        </div>
+        <div class="status-item">
+          <span><span class="status-dot inactive" id="orchestratorStatus"></span>Orchestrator</span>
+          <span id="orchestratorLabel">Loading...</span>
+        </div>
+        <div class="status-item">
+          <span><span class="status-dot" id="calendarStatus"></span>Calendar App</span>
+          <span id="calendarLabel">Loading...</span>
+        </div>
+      </div>
+
+      <div class="instructions">
+        <h2>🧪 Test in Console (F12)</h2>
+        <p>Open browser DevTools (F12) and try these commands:</p>
+        
+        <pre>// Create an event
+AwareOS.calendar.dispatch("create_event", { 
+  title: "Team Meeting", 
+  start: "2025-11-22T14:00:00",
+  end: "2025-11-22T15:00:00"
+})</pre>
+
+        <pre>// See calendar state
+AwareOS.calendar.getState()</pre>
+
+        <pre>// See all app capabilities
+AwareOS.registry.getAllManifests()</pre>
+
+        <pre>// See what the orchestrator knows
+AwareOS.context.getFullContext()</pre>
+
+        <pre>// Set some user profile data
+AwareOS.context.setProfile("location", "Exton, PA")
+AwareOS.context.setProfile("name", "Your Name")</pre>
+      </div>
+
+      <div class="event-log">
+        <h2>📡 Live Event Log</h2>
+        <div id="eventLogContainer">
+          <div class="event-item" style="color: #666;">Waiting for events...</div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
