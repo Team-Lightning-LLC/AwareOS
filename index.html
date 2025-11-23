@@ -1,431 +1,707 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aware.OS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AwareOS - Command Center</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-      :root {
-        --bg-deep: #f8f6f3;
-        --bg-surface: rgba(255, 253, 250, 0.6);
-        --bg-surface-hover: rgba(245, 243, 240, 0.8);
-        --border-subtle: rgba(100, 90, 80, 0.08);
-        --text-primary: rgba(40, 35, 30, 0.9);
-        --text-secondary: rgba(60, 55, 50, 0.65);
-        --text-tertiary: rgba(80, 75, 70, 0.4);
-        --accent-glow: rgba(100, 140, 180, 0.12);
-        --accent-soft: rgba(80, 120, 160, 0.7);
-        --alive: rgba(100, 160, 120, 0.85);
-        --alive-glow: rgba(100, 160, 120, 0.25);
-      }
-
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
-      html {
-        font-size: 15px;
-      }
-
-      body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        font-weight: 300;
-        background: var(--bg-deep);
-        color: var(--text-primary);
-        min-height: 100vh;
-        letter-spacing: 0.01em;
-        line-height: 1.6;
-        overflow-x: hidden;
-      }
-
-      /* Subtle gradient background that breathes */
-      body::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: 
-          radial-gradient(ellipse at 20% 20%, rgba(180, 200, 220, 0.15) 0%, transparent 50%),
-          radial-gradient(ellipse at 80% 80%, rgba(200, 220, 200, 0.12) 0%, transparent 50%);
-        animation: breathe 12s ease-in-out infinite;
-        pointer-events: none;
-        z-index: -1;
-      }
-
-      @keyframes breathe {
-        0%, 100% { opacity: 0.6; transform: scale(1); }
-        50% { opacity: 0.9; transform: scale(1.01); }
-      }
-
-      .container {
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 80px 40px;
-      }
-
-      /* Header */
-      header {
-        text-align: center;
-        margin-bottom: 80px;
-      }
-
-      .logo {
-        font-size: 0.75rem;
-        font-weight: 500;
-        letter-spacing: 0.3em;
-        text-transform: uppercase;
-        color: var(--text-tertiary);
-        margin-bottom: 24px;
-      }
-
-      h1 {
-        font-size: 2.2rem;
-        font-weight: 300;
-        letter-spacing: -0.02em;
-        margin-bottom: 16px;
-        background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-
-      .subtitle {
-        color: var(--text-tertiary);
-        font-size: 0.95rem;
-        font-weight: 300;
-      }
-
-      /* Sections */
-      section {
-        margin-bottom: 48px;
-      }
-
-      .section-label {
-        font-size: 0.7rem;
-        font-weight: 500;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: var(--text-tertiary);
-        margin-bottom: 20px;
-        padding-left: 2px;
-      }
-
-      /* Status Panel */
-      .status {
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: 16px;
-        padding: 8px;
-        backdrop-filter: blur(20px);
-      }
-
-      .status-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px 20px;
-        border-radius: 10px;
-        transition: background 0.3s ease;
-      }
-
-      .status-item:hover {
-        background: var(--bg-surface-hover);
-      }
-
-      .status-left {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-      }
-
-      .status-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--alive);
-        box-shadow: 0 0 12px var(--alive-glow);
-        animation: pulse 4s ease-in-out infinite;
-      }
-
-      .status-dot.inactive {
-        background: var(--text-tertiary);
-        box-shadow: none;
-        animation: none;
-      }
-
-      @keyframes pulse {
-        0%, 100% { opacity: 0.6; transform: scale(1); }
-        50% { opacity: 1; transform: scale(1.2); }
-      }
-
-      .status-name {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-      }
-
-      .status-value {
-        color: var(--text-tertiary);
-        font-size: 0.8rem;
-      }
-
-      /* Code blocks */
-      .code-section {
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: 16px;
-        padding: 28px;
-        backdrop-filter: blur(20px);
-      }
-
-      .code-intro {
-        color: var(--text-tertiary);
-        font-size: 0.85rem;
-        margin-bottom: 24px;
-      }
-
-      pre {
-        background: rgba(230, 228, 225, 0.4);
-        padding: 16px 20px;
-        border-radius: 10px;
-        overflow-x: auto;
-        margin-bottom: 12px;
-        font-family: 'SF Mono', 'Fira Code', monospace;
-        font-size: 0.8rem;
-        line-height: 1.7;
-        color: var(--text-secondary);
-        border: 1px solid var(--border-subtle);
-      }
-
-      pre:last-child {
-        margin-bottom: 0;
-      }
-
-      .comment {
-        color: var(--text-tertiary);
-      }
-
-      /* Event Log */
-      .event-log {
-        background: var(--bg-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: 16px;
-        padding: 28px;
-        backdrop-filter: blur(20px);
-      }
-
-      #eventLogContainer {
-        max-height: 240px;
-        overflow-y: auto;
-        scrollbar-width: thin;
-        scrollbar-color: var(--border-subtle) transparent;
-      }
-
-      #eventLogContainer::-webkit-scrollbar {
-        width: 4px;
-      }
-
-      #eventLogContainer::-webkit-scrollbar-track {
-        background: transparent;
-      }
-
-      #eventLogContainer::-webkit-scrollbar-thumb {
-        background: rgba(100, 90, 80, 0.15);
-        border-radius: 2px;
-      }
-
-      .event-item {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 12px 0;
-        border-bottom: 1px solid var(--border-subtle);
-        animation: fadeIn 0.5s ease;
-      }
-
-      .event-item:last-child {
-        border-bottom: none;
-      }
-
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-8px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      .event-time {
-        color: var(--text-tertiary);
-        font-size: 0.75rem;
-        font-family: 'SF Mono', monospace;
-        min-width: 70px;
-      }
-
-      .event-name {
-        color: var(--accent-soft);
-        font-size: 0.85rem;
-        font-weight: 400;
-      }
-
-      .waiting {
-        color: var(--text-tertiary);
-        font-size: 0.85rem;
-        font-style: italic;
-        padding: 20px 0;
-        text-align: center;
-      }
-
-      /* Connection lines - subtle interconnectedness */
-      .connections {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        pointer-events: none;
-        z-index: -1;
-        opacity: 0.3;
-      }
-
-      .connection-line {
-        position: absolute;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
-        animation: flow 8s linear infinite;
-      }
-
-      @keyframes flow {
-        0% { opacity: 0; transform: translateX(-100%); }
-        50% { opacity: 1; }
-        100% { opacity: 0; transform: translateX(100%); }
-      }
-
-      /* Footer */
-      footer {
-        text-align: center;
-        padding-top: 40px;
-        color: var(--text-tertiary);
-        font-size: 0.75rem;
-      }
-
-      footer span {
-        display: inline-block;
-        animation: pulse 4s ease-in-out infinite;
-      }
-
-      /* Responsive */
-      @media (max-width: 600px) {
-        .container {
-          padding: 40px 20px;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            overflow: hidden;
         }
 
-        h1 {
-          font-size: 1.8rem;
+        .command-center {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+            width: 100vw;
         }
 
-        pre {
-          font-size: 0.7rem;
-          padding: 12px 14px;
+        /* Status Bar */
+        .status-bar {
+            background: rgba(26, 26, 46, 0.95);
+            border-bottom: 1px solid #333;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
         }
-      }
+
+        .status-items {
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+        }
+
+        .status-dot.inactive {
+            background: #f59e0b;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+        }
+
+        .logo {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a9eff;
+        }
+
+        /* Canvas */
+        .canvas {
+            position: relative;
+            background: #12121f;
+            background-image: radial-gradient(circle at 1px 1px, #2a2a4a 1px, transparent 0);
+            background-size: 40px 40px;
+            overflow: hidden;
+        }
+
+        .widget {
+            position: absolute;
+            background: #16162a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .widget-header {
+            background: #1f1f3a;
+            padding: 8px 12px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .widget-header:active {
+            cursor: grabbing;
+        }
+
+        .widget-title {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .widget-controls {
+            display: flex;
+            gap: 4px;
+        }
+
+        .widget-btn {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 6px;
+        }
+
+        .widget-btn:hover {
+            color: #eee;
+        }
+
+        .widget-content {
+            flex: 1;
+            overflow: auto;
+            padding: 15px;
+        }
+
+        .resize-handle {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 15px;
+            height: 15px;
+            cursor: se-resize;
+            background: linear-gradient(135deg, transparent 50%, #444 50%);
+        }
+
+        /* Event Log */
+        .event-log {
+            background: rgba(26, 26, 46, 0.95);
+            border-top: 1px solid #333;
+            padding: 15px 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .event-log-title {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+        }
+
+        .event-item {
+            display: flex;
+            gap: 12px;
+            padding: 6px 0;
+            font-size: 11px;
+            font-family: monospace;
+            border-bottom: 1px solid rgba(51, 51, 51, 0.3);
+        }
+
+        .event-item:last-child {
+            border-bottom: none;
+        }
+
+        .event-time {
+            color: #666;
+            min-width: 70px;
+        }
+
+        .event-name {
+            color: #10b981;
+        }
+
+        /* Calendar Widget Content */
+        .calendar-events {
+            font-size: 13px;
+        }
+
+        .event-card {
+            background: #252540;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .event-card-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .event-title {
+            font-weight: 500;
+        }
+
+        .event-time-display {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .event-location {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .add-event-btn {
+            width: 100%;
+            padding: 10px;
+            background: #4a9eff;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .add-event-btn:hover {
+            background: #3a8eef;
+        }
+
+        .event-form {
+            background: #252540;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 11px;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px;
+            background: #1a1a2e;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #eee;
+            font-size: 12px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background: #10b981;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 4px;
+        }
+
+        .delete-btn:hover {
+            color: #ef4444;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
     </style>
-  </head>
-  <body>
-    <!-- Subtle connection lines -->
-    <div class="connections">
-      <div class="connection-line" style="top: 30%; width: 60%; left: 20%;"></div>
-      <div class="connection-line" style="top: 50%; width: 40%; left: 35%; animation-delay: -3s;"></div>
-      <div class="connection-line" style="top: 70%; width: 55%; left: 25%; animation-delay: -5s;"></div>
-    </div>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-    <div class="container">
-      <header>
-        <div class="logo">Aware.OS</div>
-        <h1>Interconnected Applications</h1>
-        <p class="subtitle">AI Orchestrated Application Intelligence</p>
-      </header>
+        // Import core (these would be loaded from actual files in production)
+        // For now, embedded inline for single-file deployment
 
-      <section>
-        <div class="section-label">System State</div>
-        <div class="status" id="statusPanel">
-          <div class="status-item">
-            <div class="status-left">
-              <span class="status-dot" id="eventBusStatus"></span>
-              <span class="status-name">Event Bus</span>
-            </div>
-            <span class="status-value" id="eventBusLabel">initializing</span>
-          </div>
-          <div class="status-item">
-            <div class="status-left">
-              <span class="status-dot" id="registryStatus"></span>
-              <span class="status-name">Registry</span>
-            </div>
-            <span class="status-value" id="registryLabel">initializing</span>
-          </div>
-          <div class="status-item">
-            <div class="status-left">
-              <span class="status-dot" id="contextStatus"></span>
-              <span class="status-name">Context Store</span>
-            </div>
-            <span class="status-value" id="contextLabel">initializing</span>
-          </div>
-          <div class="status-item">
-            <div class="status-left">
-              <span class="status-dot inactive" id="orchestratorStatus"></span>
-              <span class="status-name">Orchestrator</span>
-            </div>
-            <span class="status-value" id="orchestratorLabel">initializing</span>
-          </div>
-          <div class="status-item">
-            <div class="status-left">
-              <span class="status-dot" id="calendarStatus"></span>
-              <span class="status-name">Calendar</span>
-            </div>
-            <span class="status-value" id="calendarLabel">initializing</span>
-          </div>
-        </div>
-      </section>
+        // Event Bus
+        class EventBus {
+            constructor() {
+                this.listeners = {};
+            }
+            on(event, callback) {
+                if (!this.listeners[event]) this.listeners[event] = [];
+                this.listeners[event].push(callback);
+                return () => {
+                    this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
+                };
+            }
+            emit(event, data) {
+                console.log(`[EventBus] ${event}`, data);
+                if (this.listeners[event]) {
+                    this.listeners[event].forEach(callback => callback(data));
+                }
+                if (this.listeners['*']) {
+                    this.listeners['*'].forEach(callback => callback(event, data));
+                }
+            }
+        }
 
-      <section>
-        <div class="section-label">Interact</div>
-        <div class="code-section">
-          <p class="code-intro">Open console (F12) to explore</p>
-          
-          <pre><span class="comment">// create an event</span>
-AwareOS.calendar.dispatch("create_event", { 
-  title: "Morning Walk", 
-  start: "2025-11-22T08:00:00"
-})</pre>
+        const eventBus = new EventBus();
 
-          <pre><span class="comment">// observe state</span>
-AwareOS.calendar.getState()</pre>
+        // Calendar State
+        class CalendarState {
+            constructor() {
+                this.events = [];
+                this.loadFromStorage();
+            }
+            loadFromStorage() {
+                try {
+                    const saved = localStorage.getItem('awareos_calendar_events');
+                    if (saved) this.events = JSON.parse(saved);
+                } catch (error) {
+                    console.error('Failed to load events:', error);
+                }
+            }
+            saveToStorage() {
+                try {
+                    localStorage.setItem('awareos_calendar_events', JSON.stringify(this.events));
+                } catch (error) {
+                    console.error('Failed to save events:', error);
+                }
+            }
+            getAll() {
+                return [...this.events];
+            }
+            getToday() {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                return this.events.filter(event => {
+                    const eventTime = new Date(event.start).getTime();
+                    return eventTime >= today.getTime() && eventTime < tomorrow.getTime();
+                });
+            }
+            add(event) {
+                const newEvent = {
+                    id: Date.now().toString(),
+                    ...event,
+                    createdAt: new Date().toISOString()
+                };
+                this.events.push(newEvent);
+                this.saveToStorage();
+                eventBus.emit('calendar_event_created', { event: newEvent });
+                return newEvent;
+            }
+            delete(id) {
+                const index = this.events.findIndex(e => e.id === id);
+                if (index !== -1) {
+                    const deleted = this.events.splice(index, 1)[0];
+                    this.saveToStorage();
+                    eventBus.emit('calendar_event_deleted', { event: deleted });
+                    return deleted;
+                }
+            }
+        }
 
-          <pre><span class="comment">// understand capabilities</span>
-AwareOS.registry.getAllManifests()</pre>
+        const calendarState = new CalendarState();
 
-          <pre><span class="comment">// know yourself</span>
-AwareOS.context.setProfile("name", "your name")</pre>
-        </div>
-      </section>
+        // Calendar Widget Component
+        function CalendarWidget() {
+            const [events, setEvents] = useState([]);
+            const [showForm, setShowForm] = useState(false);
+            const [formData, setFormData] = useState({
+                title: '',
+                date: '',
+                startTime: '',
+                endTime: '',
+                location: ''
+            });
 
-      <section>
-        <div class="section-label">Activity</div>
-        <div class="event-log">
-          <div id="eventLogContainer">
-            <div class="waiting">listening...</div>
-          </div>
-        </div>
-      </section>
+            useEffect(() => {
+                loadEvents();
+                const unsubscribe = eventBus.on('*', () => loadEvents());
+                return () => unsubscribe();
+            }, []);
 
-      <footer>
-        <span>。</span> 
-      </footer>
-    </div>
+            const loadEvents = () => {
+                setEvents(calendarState.getToday());
+            };
 
-    <script type="module" src="/src/main.js"></script>
-  </body>
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const start = `${formData.date}T${formData.startTime}:00`;
+                const end = `${formData.date}T${formData.endTime}:00`;
+                calendarState.add({
+                    title: formData.title,
+                    start,
+                    end,
+                    location: formData.location
+                });
+                setFormData({ title: '', date: '', startTime: '', endTime: '', location: '' });
+                setShowForm(false);
+            };
+
+            const handleDelete = (id) => {
+                if (confirm('Delete this event?')) {
+                    calendarState.delete(id);
+                }
+            };
+
+            return (
+                <div className="calendar-events">
+                    <button className="add-event-btn" onClick={() => setShowForm(!showForm)}>
+                        {showForm ? 'Cancel' : '+ Add Event'}
+                    </button>
+
+                    {showForm && (
+                        <form className="event-form" onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label className="form-label">Title *</label>
+                                <input
+                                    className="form-input"
+                                    required
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="form-label">Date *</label>
+                                    <input
+                                        className="form-input"
+                                        type="date"
+                                        required
+                                        value={formData.date}
+                                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Location</label>
+                                    <input
+                                        className="form-input"
+                                        value={formData.location}
+                                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="form-label">Start Time *</label>
+                                    <input
+                                        className="form-input"
+                                        type="time"
+                                        required
+                                        value={formData.startTime}
+                                        onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">End Time *</label>
+                                    <input
+                                        className="form-input"
+                                        type="time"
+                                        required
+                                        value={formData.endTime}
+                                        onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <button className="submit-btn" type="submit">Create Event</button>
+                        </form>
+                    )}
+
+                    <h4 style={{ fontSize: '12px', color: '#888', marginBottom: '10px' }}>Today's Events</h4>
+                    
+                    {events.length === 0 ? (
+                        <div className="empty-state">No events today</div>
+                    ) : (
+                        events.map(event => {
+                            const start = new Date(event.start);
+                            const end = new Date(event.end);
+                            return (
+                                <div key={event.id} className="event-card">
+                                    <div className="event-card-header">
+                                        <div>
+                                            <div className="event-title">{event.title}</div>
+                                            <div className="event-time-display">
+                                                {start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                                {' - '}
+                                                {end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                            </div>
+                                            {event.location && (
+                                                <div className="event-location">📍 {event.location}</div>
+                                            )}
+                                        </div>
+                                        <button className="delete-btn" onClick={() => handleDelete(event.id)}>
+                                            ×
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+            );
+        }
+
+        // Draggable Widget Container
+        function Widget({ widget, onMove, onResize, onRemove }) {
+            const [isDragging, setIsDragging] = useState(false);
+            const [isResizing, setIsResizing] = useState(false);
+            const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+            const widgetRef = useRef(null);
+
+            const handleMouseDown = (e) => {
+                if (e.target.classList.contains('resize-handle')) return;
+                if (e.target.closest('.widget-controls')) return;
+                if (e.target.closest('.widget-content')) return;
+                
+                setIsDragging(true);
+                const rect = widgetRef.current.getBoundingClientRect();
+                setDragOffset({
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                });
+            };
+
+            const handleResizeMouseDown = (e) => {
+                e.stopPropagation();
+                setIsResizing(true);
+            };
+
+            useEffect(() => {
+                if (!isDragging && !isResizing) return;
+
+                const handleMouseMove = (e) => {
+                    if (isDragging) {
+                        onMove(widget.id, e.clientX - dragOffset.x, e.clientY - dragOffset.y);
+                    }
+                    if (isResizing) {
+                        const rect = widgetRef.current.getBoundingClientRect();
+                        const newW = Math.max(300, e.clientX - rect.left);
+                        const newH = Math.max(200, e.clientY - rect.top);
+                        onResize(widget.id, newW, newH);
+                    }
+                };
+
+                const handleMouseUp = () => {
+                    setIsDragging(false);
+                    setIsResizing(false);
+                };
+
+                window.addEventListener('mousemove', handleMouseMove);
+                window.addEventListener('mouseup', handleMouseUp);
+
+                return () => {
+                    window.removeEventListener('mousemove', handleMouseMove);
+                    window.removeEventListener('mouseup', handleMouseUp);
+                };
+            }, [isDragging, isResizing, dragOffset, widget.id, onMove, onResize]);
+
+            return (
+                <div
+                    ref={widgetRef}
+                    className="widget"
+                    style={{
+                        left: widget.x,
+                        top: widget.y,
+                        width: widget.w,
+                        height: widget.h,
+                    }}
+                >
+                    <div className="widget-header" onMouseDown={handleMouseDown}>
+                        <span className="widget-title">📅 Calendar</span>
+                        <div className="widget-controls">
+                            <button className="widget-btn" onClick={() => onRemove(widget.id)}>×</button>
+                        </div>
+                    </div>
+                    <div className="widget-content">
+                        <CalendarWidget />
+                    </div>
+                    <div className="resize-handle" onMouseDown={handleResizeMouseDown} />
+                </div>
+            );
+        }
+
+        // Main Command Center
+        function CommandCenter() {
+            const [widgets, setWidgets] = useState([
+                { id: 'calendar-1', type: 'calendar', x: 100, y: 50, w: 400, h: 500 }
+            ]);
+            const [eventLog, setEventLog] = useState([]);
+
+            useEffect(() => {
+                console.log('[AwareOS] Command Center ready');
+                console.log('[AwareOS] Try: calendarState.add({ title: "Test", start: "2025-11-22T14:00:00", end: "2025-11-22T15:00:00" })');
+                
+                // Expose to window
+                window.calendarState = calendarState;
+                window.eventBus = eventBus;
+
+                const unsubscribe = eventBus.on('*', (event, data) => {
+                    const time = new Date().toLocaleTimeString();
+                    setEventLog(prev => [{ time, event, data }, ...prev].slice(0, 20));
+                });
+
+                return () => unsubscribe();
+            }, []);
+
+            const moveWidget = (id, x, y) => {
+                setWidgets(ws => ws.map(w => w.id === id ? { ...w, x, y } : w));
+            };
+
+            const resizeWidget = (id, w, h) => {
+                setWidgets(ws => ws.map(widget => widget.id === id ? { ...widget, w, h } : widget));
+            };
+
+            const removeWidget = (id) => {
+                setWidgets(ws => ws.filter(w => w.id !== id));
+            };
+
+            return (
+                <div className="command-center">
+                    {/* Status Bar */}
+                    <div className="status-bar">
+                        <div className="logo">🧠 AwareOS</div>
+                        <div className="status-items">
+                            <div className="status-item">
+                                <div className="status-dot"></div>
+                                <span>Event Bus</span>
+                            </div>
+                            <div className="status-item">
+                                <div className="status-dot"></div>
+                                <span>Calendar</span>
+                            </div>
+                            <div className="status-item">
+                                <div className="status-dot inactive"></div>
+                                <span>Orchestrator</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Canvas */}
+                    <div className="canvas">
+                        {widgets.map(widget => (
+                            <Widget
+                                key={widget.id}
+                                widget={widget}
+                                onMove={moveWidget}
+                                onResize={resizeWidget}
+                                onRemove={removeWidget}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Event Log */}
+                    <div className="event-log">
+                        <div className="event-log-title">Event Log</div>
+                        {eventLog.length === 0 ? (
+                            <div style={{ color: '#666', fontSize: '11px' }}>Waiting for events...</div>
+                        ) : (
+                            eventLog.map((item, i) => (
+                                <div key={i} className="event-item">
+                                    <span className="event-time">{item.time}</span>
+                                    <span className="event-name">{item.event}</span>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Render
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CommandCenter />);
+    </script>
+</body>
 </html>
