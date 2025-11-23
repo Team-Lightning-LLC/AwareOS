@@ -7,310 +7,22 @@
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="./src/shell/Shell.css">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a1a2e;
-            color: #eee;
-            overflow: hidden;
-        }
-
-        .command-center {
-            display: grid;
-            grid-template-rows: auto 1fr auto;
-            height: 100vh;
+        #root {
             width: 100vw;
-        }
-
-        /* Status Bar */
-        .status-bar {
-            background: rgba(26, 26, 46, 0.95);
-            border-bottom: 1px solid #333;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .status-items {
-            display: flex;
-            gap: 20px;
-        }
-
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #10b981;
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-        }
-
-        .status-dot.inactive {
-            background: #f59e0b;
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
-        }
-
-        .logo {
-            font-size: 12px;
-            font-weight: 600;
-            color: #4a9eff;
-        }
-
-        /* Canvas */
-        .canvas {
-            position: relative;
-            background: #12121f;
-            background-image: radial-gradient(circle at 1px 1px, #2a2a4a 1px, transparent 0);
-            background-size: 40px 40px;
-            overflow: hidden;
-        }
-
-        .widget {
-            position: absolute;
-            background: #16162a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .widget-header {
-            background: #1f1f3a;
-            padding: 8px 12px;
-            border-bottom: 1px solid #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: grab;
-            user-select: none;
-        }
-
-        .widget-header:active {
-            cursor: grabbing;
-        }
-
-        .widget-title {
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .widget-controls {
-            display: flex;
-            gap: 4px;
-        }
-
-        .widget-btn {
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 0 6px;
-        }
-
-        .widget-btn:hover {
-            color: #eee;
-        }
-
-        .widget-content {
-            flex: 1;
-            overflow: auto;
-            padding: 15px;
-        }
-
-        .resize-handle {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 15px;
-            height: 15px;
-            cursor: se-resize;
-            background: linear-gradient(135deg, transparent 50%, #444 50%);
-        }
-
-        /* Event Log */
-        .event-log {
-            background: rgba(26, 26, 46, 0.95);
-            border-top: 1px solid #333;
-            padding: 15px 20px;
-            max-height: 200px;
-            overflow-y: auto;
-            backdrop-filter: blur(10px);
-        }
-
-        .event-log-title {
-            font-size: 11px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 10px;
-        }
-
-        .event-item {
-            display: flex;
-            gap: 12px;
-            padding: 6px 0;
-            font-size: 11px;
-            font-family: monospace;
-            border-bottom: 1px solid rgba(51, 51, 51, 0.3);
-        }
-
-        .event-item:last-child {
-            border-bottom: none;
-        }
-
-        .event-time {
-            color: #666;
-            min-width: 70px;
-        }
-
-        .event-name {
-            color: #10b981;
-        }
-
-        /* Calendar Widget Content */
-        .calendar-events {
-            font-size: 13px;
-        }
-
-        .event-card {
-            background: #252540;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 10px;
-        }
-
-        .event-card-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-        }
-
-        .event-title {
-            font-weight: 500;
-        }
-
-        .event-time-display {
-            font-size: 11px;
-            color: #888;
-        }
-
-        .event-location {
-            font-size: 11px;
-            color: #666;
-            margin-top: 4px;
-        }
-
-        .add-event-btn {
-            width: 100%;
-            padding: 10px;
-            background: #4a9eff;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            margin-bottom: 15px;
-        }
-
-        .add-event-btn:hover {
-            background: #3a8eef;
-        }
-
-        .event-form {
-            background: #252540;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 11px;
-            color: #aaa;
-            margin-bottom: 4px;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 8px;
-            background: #1a1a2e;
-            border: 1px solid #444;
-            border-radius: 4px;
-            color: #eee;
-            font-size: 12px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 10px;
-            background: #10b981;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .delete-btn {
-            background: none;
-            border: none;
-            color: #666;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 0 4px;
-        }
-
-        .delete-btn:hover {
-            color: #ef4444;
-        }
-
-        .empty-state {
-            padding: 40px 20px;
-            text-align: center;
-            color: #666;
-            font-size: 12px;
+            height: 100vh;
         }
     </style>
 </head>
 <body>
     <div id="root"></div>
     
-    <script type="text/babel">
+    <script type="text/babel" data-type="module">
         const { useState, useEffect, useRef } = React;
 
-        // Import core (these would be loaded from actual files in production)
-        // For now, embedded inline for single-file deployment
-
+        // ===== CORE =====
+        
         // Event Bus
         class EventBus {
             constructor() {
@@ -332,9 +44,70 @@
                     this.listeners['*'].forEach(callback => callback(event, data));
                 }
             }
+            once(event, callback) {
+                const unsubscribe = this.on(event, (data) => {
+                    callback(data);
+                    unsubscribe();
+                });
+            }
         }
 
         const eventBus = new EventBus();
+
+        // Registry
+        class Registry {
+            constructor() {
+                this.apps = new Map();
+            }
+            register(app) {
+                if (!app.manifest || !app.manifest.name) {
+                    throw new Error('App must have a manifest with a name');
+                }
+                const name = app.manifest.name;
+                console.log(`[Registry] Registering app: ${name}`);
+                this.apps.set(name, app);
+            }
+            get(name) {
+                return this.apps.get(name);
+            }
+            getAll() {
+                return Array.from(this.apps.values());
+            }
+            getAllManifests() {
+                return this.getAll().map(app => app.manifest);
+            }
+            getAllState() {
+                const state = {};
+                for (const [name, app] of this.apps) {
+                    if (typeof app.getState === 'function') {
+                        state[name] = app.getState();
+                    }
+                }
+                return state;
+            }
+            dispatch(appName, action, params) {
+                const app = this.apps.get(appName);
+                if (!app) throw new Error(`App not found: ${appName}`);
+                if (typeof app.dispatch !== 'function') {
+                    throw new Error(`App ${appName} doesn't support actions`);
+                }
+                console.log(`[Registry] Dispatching to ${appName}:`, action, params);
+                return app.dispatch(action, params);
+            }
+        }
+
+        const registry = new Registry();
+
+        // ===== CALENDAR APP =====
+        
+        // Calendar Manifest
+        const calendarManifest = {
+            name: 'calendar',
+            domain: 'time-based commitments and availability',
+            capabilities: ['read_events', 'check_availability', 'find_free_time'],
+            actions: ['create_event', 'update_event', 'delete_event', 'get_events'],
+            events: ['event_created', 'event_updated', 'event_deleted', 'event_moved']
+        };
 
         // Calendar State
         class CalendarState {
@@ -345,16 +118,19 @@
             loadFromStorage() {
                 try {
                     const saved = localStorage.getItem('awareos_calendar_events');
-                    if (saved) this.events = JSON.parse(saved);
+                    if (saved) {
+                        this.events = JSON.parse(saved);
+                        console.log(`[Calendar] Loaded ${this.events.length} events`);
+                    }
                 } catch (error) {
-                    console.error('Failed to load events:', error);
+                    console.error('[Calendar] Failed to load events:', error);
                 }
             }
             saveToStorage() {
                 try {
                     localStorage.setItem('awareos_calendar_events', JSON.stringify(this.events));
                 } catch (error) {
-                    console.error('Failed to save events:', error);
+                    console.error('[Calendar] Failed to save events:', error);
                 }
             }
             getAll() {
@@ -374,27 +150,83 @@
                 const newEvent = {
                     id: Date.now().toString(),
                     ...event,
-                    createdAt: new Date().toISOString()
+                    createdAt: new Date().toISOString(),
+                    status: event.status || 'confirmed'
                 };
                 this.events.push(newEvent);
                 this.saveToStorage();
-                eventBus.emit('calendar_event_created', { event: newEvent });
                 return newEvent;
             }
             delete(id) {
                 const index = this.events.findIndex(e => e.id === id);
-                if (index !== -1) {
-                    const deleted = this.events.splice(index, 1)[0];
-                    this.saveToStorage();
-                    eventBus.emit('calendar_event_deleted', { event: deleted });
-                    return deleted;
-                }
+                if (index === -1) throw new Error(`Event not found: ${id}`);
+                const deleted = this.events.splice(index, 1)[0];
+                this.saveToStorage();
+                return deleted;
+            }
+            getSnapshot() {
+                return {
+                    eventsToday: this.getToday(),
+                    totalEvents: this.events.length
+                };
             }
         }
 
         const calendarState = new CalendarState();
 
-        // Calendar Widget Component
+        // Calendar Actions
+        const calendarActions = {
+            create_event(params) {
+                const { title, start, end, location } = params;
+                if (!title || !start) {
+                    throw new Error('Event requires at least title and start time');
+                }
+                const eventEnd = end || new Date(new Date(start).getTime() + 60 * 60 * 1000).toISOString();
+                const newEvent = calendarState.add({
+                    title,
+                    start,
+                    end: eventEnd,
+                    location
+                });
+                eventBus.emit('calendar_event_created', {
+                    event: newEvent,
+                    source: 'calendar'
+                });
+                return newEvent;
+            },
+            delete_event(params) {
+                const { id } = params;
+                if (!id) throw new Error('Event ID required for deletion');
+                const deleted = calendarState.delete(id);
+                eventBus.emit('calendar_event_deleted', {
+                    event: deleted,
+                    source: 'calendar'
+                });
+                return deleted;
+            },
+            get_events(params = {}) {
+                return calendarState.getToday();
+            }
+        };
+
+        // Calendar App
+        const calendarApp = {
+            manifest: calendarManifest,
+            getState: () => calendarState.getSnapshot(),
+            dispatch: (action, params) => {
+                if (!calendarActions[action]) {
+                    throw new Error(`Unknown action: ${action}`);
+                }
+                return calendarActions[action](params);
+            },
+            init: () => {
+                console.log('[Calendar] Ready');
+            }
+        };
+
+        // ===== UI COMPONENTS =====
+        
+        // Calendar Widget
         function CalendarWidget() {
             const [events, setEvents] = useState([]);
             const [showForm, setShowForm] = useState(false);
@@ -408,122 +240,158 @@
 
             useEffect(() => {
                 loadEvents();
-                const unsubscribe = eventBus.on('*', () => loadEvents());
+                const unsubscribe = eventBus.on('*', (event) => {
+                    if (event.startsWith('calendar_')) {
+                        loadEvents();
+                    }
+                });
                 return () => unsubscribe();
             }, []);
 
             const loadEvents = () => {
-                setEvents(calendarState.getToday());
+                try {
+                    const todayEvents = registry.dispatch('calendar', 'get_events', {});
+                    setEvents(todayEvents);
+                } catch (error) {
+                    console.error('[CalendarWidget] Failed to load events:', error);
+                }
             };
 
             const handleSubmit = (e) => {
                 e.preventDefault();
                 const start = `${formData.date}T${formData.startTime}:00`;
                 const end = `${formData.date}T${formData.endTime}:00`;
-                calendarState.add({
-                    title: formData.title,
-                    start,
-                    end,
-                    location: formData.location
-                });
-                setFormData({ title: '', date: '', startTime: '', endTime: '', location: '' });
-                setShowForm(false);
+                try {
+                    registry.dispatch('calendar', 'create_event', {
+                        title: formData.title,
+                        start,
+                        end,
+                        location: formData.location
+                    });
+                    setFormData({ title: '', date: '', startTime: '', endTime: '', location: '' });
+                    setShowForm(false);
+                } catch (error) {
+                    alert('Failed to create event: ' + error.message);
+                }
             };
 
             const handleDelete = (id) => {
                 if (confirm('Delete this event?')) {
-                    calendarState.delete(id);
+                    try {
+                        registry.dispatch('calendar', 'delete_event', { id });
+                    } catch (error) {
+                        alert('Failed to delete event: ' + error.message);
+                    }
                 }
             };
 
             return (
-                <div className="calendar-events">
-                    <button className="add-event-btn" onClick={() => setShowForm(!showForm)}>
+                <div style={{ padding: '15px', fontSize: '13px' }}>
+                    <button
+                        onClick={() => setShowForm(!showForm)}
+                        className="add-event-btn"
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            background: '#4a9eff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            color: 'white',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            marginBottom: '15px'
+                        }}
+                    >
                         {showForm ? 'Cancel' : '+ Add Event'}
                     </button>
 
                     {showForm && (
-                        <form className="event-form" onSubmit={handleSubmit}>
-                            <div className="form-group">
-                                <label className="form-label">Title *</label>
+                        <form onSubmit={handleSubmit} style={{ background: '#252540', padding: '15px', borderRadius: '6px', marginBottom: '15px' }}>
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>Title *</label>
                                 <input
-                                    className="form-input"
                                     required
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    style={{ width: '100%', padding: '8px', background: '#1a1a2e', border: '1px solid #444', borderRadius: '4px', color: '#eee', fontSize: '12px' }}
                                 />
                             </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label className="form-label">Date *</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                <div style={{ marginBottom: '12px' }}>
+                                    <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>Date *</label>
                                     <input
-                                        className="form-input"
                                         type="date"
                                         required
                                         value={formData.date}
                                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                        style={{ width: '100%', padding: '8px', background: '#1a1a2e', border: '1px solid #444', borderRadius: '4px', color: '#eee', fontSize: '12px' }}
                                     />
                                 </div>
-                                <div className="form-group">
-                                    <label className="form-label">Location</label>
+                                <div style={{ marginBottom: '12px' }}>
+                                    <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>Location</label>
                                     <input
-                                        className="form-input"
                                         value={formData.location}
                                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                        style={{ width: '100%', padding: '8px', background: '#1a1a2e', border: '1px solid #444', borderRadius: '4px', color: '#eee', fontSize: '12px' }}
                                     />
                                 </div>
                             </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label className="form-label">Start Time *</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                <div style={{ marginBottom: '12px' }}>
+                                    <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>Start *</label>
                                     <input
-                                        className="form-input"
                                         type="time"
                                         required
                                         value={formData.startTime}
                                         onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                        style={{ width: '100%', padding: '8px', background: '#1a1a2e', border: '1px solid #444', borderRadius: '4px', color: '#eee', fontSize: '12px' }}
                                     />
                                 </div>
-                                <div className="form-group">
-                                    <label className="form-label">End Time *</label>
+                                <div style={{ marginBottom: '12px' }}>
+                                    <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>End *</label>
                                     <input
-                                        className="form-input"
                                         type="time"
                                         required
                                         value={formData.endTime}
                                         onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                                        style={{ width: '100%', padding: '8px', background: '#1a1a2e', border: '1px solid #444', borderRadius: '4px', color: '#eee', fontSize: '12px' }}
                                     />
                                 </div>
                             </div>
-                            <button className="submit-btn" type="submit">Create Event</button>
+                            <button type="submit" style={{ width: '100%', padding: '10px', background: '#10b981', border: 'none', borderRadius: '4px', color: 'white', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>
+                                Create Event
+                            </button>
                         </form>
                     )}
 
                     <h4 style={{ fontSize: '12px', color: '#888', marginBottom: '10px' }}>Today's Events</h4>
-                    
+
                     {events.length === 0 ? (
-                        <div className="empty-state">No events today</div>
+                        <div style={{ padding: '40px 20px', textAlign: 'center', color: '#666', fontSize: '12px' }}>
+                            No events today
+                        </div>
                     ) : (
                         events.map(event => {
                             const start = new Date(event.start);
                             const end = new Date(event.end);
                             return (
-                                <div key={event.id} className="event-card">
-                                    <div className="event-card-header">
+                                <div key={event.id} style={{ background: '#252540', border: '1px solid #333', borderRadius: '6px', padding: '12px', marginBottom: '10px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <div>
-                                            <div className="event-title">{event.title}</div>
-                                            <div className="event-time-display">
+                                            <div style={{ fontWeight: '500', marginBottom: '4px' }}>{event.title}</div>
+                                            <div style={{ fontSize: '11px', color: '#888' }}>
                                                 {start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                                                 {' - '}
                                                 {end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                                             </div>
                                             {event.location && (
-                                                <div className="event-location">📍 {event.location}</div>
+                                                <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+                                                    📍 {event.location}
+                                                </div>
                                             )}
                                         </div>
-                                        <button className="delete-btn" onClick={() => handleDelete(event.id)}>
-                                            ×
-                                        </button>
+                                        <button onClick={() => handleDelete(event.id)} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '14px' }}>×</button>
                                     </div>
                                 </div>
                             );
@@ -533,72 +401,48 @@
             );
         }
 
-        // Draggable Widget Container
+        // Notification Bar
+        function NotificationBar({ suggestions }) {
+            if (suggestions.length === 0) return null;
+            return (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, padding: '10px 20px', background: 'rgba(26, 26, 46, 0.98)', borderBottom: '1px solid #333' }}>
+                    <div style={{ background: '#252540', border: '1px solid #f59e0b', borderRadius: '6px', padding: '12px 15px', fontSize: '13px', color: '#eee' }}>
+                        🤖 {suggestions[0].message}
+                    </div>
+                </div>
+            );
+        }
+
+        // Widget Container
         function Widget({ widget, onMove, onResize, onRemove }) {
             const [isDragging, setIsDragging] = useState(false);
-            const [isResizing, setIsResizing] = useState(false);
             const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
             const widgetRef = useRef(null);
 
-            const handleMouseDown = (e) => {
-                if (e.target.classList.contains('resize-handle')) return;
-                if (e.target.closest('.widget-controls')) return;
-                if (e.target.closest('.widget-content')) return;
-                
-                setIsDragging(true);
-                const rect = widgetRef.current.getBoundingClientRect();
-                setDragOffset({
-                    x: e.clientX - rect.left,
-                    y: e.clientY - rect.top
-                });
-            };
-
-            const handleResizeMouseDown = (e) => {
-                e.stopPropagation();
-                setIsResizing(true);
-            };
-
             useEffect(() => {
-                if (!isDragging && !isResizing) return;
-
+                if (!isDragging) return;
                 const handleMouseMove = (e) => {
-                    if (isDragging) {
-                        onMove(widget.id, e.clientX - dragOffset.x, e.clientY - dragOffset.y);
-                    }
-                    if (isResizing) {
-                        const rect = widgetRef.current.getBoundingClientRect();
-                        const newW = Math.max(300, e.clientX - rect.left);
-                        const newH = Math.max(200, e.clientY - rect.top);
-                        onResize(widget.id, newW, newH);
-                    }
+                    onMove(widget.id, e.clientX - dragOffset.x, e.clientY - dragOffset.y);
                 };
-
-                const handleMouseUp = () => {
-                    setIsDragging(false);
-                    setIsResizing(false);
-                };
-
+                const handleMouseUp = () => setIsDragging(false);
                 window.addEventListener('mousemove', handleMouseMove);
                 window.addEventListener('mouseup', handleMouseUp);
-
                 return () => {
                     window.removeEventListener('mousemove', handleMouseMove);
                     window.removeEventListener('mouseup', handleMouseUp);
                 };
-            }, [isDragging, isResizing, dragOffset, widget.id, onMove, onResize]);
+            }, [isDragging, dragOffset, widget.id, onMove]);
 
             return (
-                <div
-                    ref={widgetRef}
-                    className="widget"
-                    style={{
-                        left: widget.x,
-                        top: widget.y,
-                        width: widget.w,
-                        height: widget.h,
-                    }}
-                >
-                    <div className="widget-header" onMouseDown={handleMouseDown}>
+                <div ref={widgetRef} className="widget" style={{ left: widget.x, top: widget.y, width: widget.w, height: widget.h }}>
+                    <div 
+                        className="widget-header"
+                        onMouseDown={(e) => {
+                            const rect = widgetRef.current.getBoundingClientRect();
+                            setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+                            setIsDragging(true);
+                        }}
+                    >
                         <span className="widget-title">📅 Calendar</span>
                         <div className="widget-controls">
                             <button className="widget-btn" onClick={() => onRemove(widget.id)}>×</button>
@@ -607,31 +451,21 @@
                     <div className="widget-content">
                         <CalendarWidget />
                     </div>
-                    <div className="resize-handle" onMouseDown={handleResizeMouseDown} />
                 </div>
             );
         }
 
-        // Main Command Center
-        function CommandCenter() {
+        // Main Shell
+        function Shell() {
             const [widgets, setWidgets] = useState([
                 { id: 'calendar-1', type: 'calendar', x: 100, y: 50, w: 400, h: 500 }
             ]);
-            const [eventLog, setEventLog] = useState([]);
+            const [suggestions, setSuggestions] = useState([]);
 
             useEffect(() => {
-                console.log('[AwareOS] Command Center ready');
-                console.log('[AwareOS] Try: calendarState.add({ title: "Test", start: "2025-11-22T14:00:00", end: "2025-11-22T15:00:00" })');
-                
-                // Expose to window
-                window.calendarState = calendarState;
-                window.eventBus = eventBus;
-
-                const unsubscribe = eventBus.on('*', (event, data) => {
-                    const time = new Date().toLocaleTimeString();
-                    setEventLog(prev => [{ time, event, data }, ...prev].slice(0, 20));
+                const unsubscribe = eventBus.on('orchestrator_suggestion', (data) => {
+                    setSuggestions(prev => [data, ...prev].slice(0, 5));
                 });
-
                 return () => unsubscribe();
             }, []);
 
@@ -639,69 +473,55 @@
                 setWidgets(ws => ws.map(w => w.id === id ? { ...w, x, y } : w));
             };
 
-            const resizeWidget = (id, w, h) => {
-                setWidgets(ws => ws.map(widget => widget.id === id ? { ...widget, w, h } : widget));
-            };
-
             const removeWidget = (id) => {
                 setWidgets(ws => ws.filter(w => w.id !== id));
             };
 
             return (
-                <div className="command-center">
-                    {/* Status Bar */}
-                    <div className="status-bar">
-                        <div className="logo">🧠 AwareOS</div>
-                        <div className="status-items">
-                            <div className="status-item">
-                                <div className="status-dot"></div>
-                                <span>Event Bus</span>
-                            </div>
-                            <div className="status-item">
-                                <div className="status-dot"></div>
-                                <span>Calendar</span>
-                            </div>
-                            <div className="status-item">
-                                <div className="status-dot inactive"></div>
-                                <span>Orchestrator</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Canvas */}
+                <div className="shell">
+                    <NotificationBar suggestions={suggestions} />
                     <div className="canvas">
                         {widgets.map(widget => (
                             <Widget
                                 key={widget.id}
                                 widget={widget}
                                 onMove={moveWidget}
-                                onResize={resizeWidget}
                                 onRemove={removeWidget}
                             />
                         ))}
-                    </div>
-
-                    {/* Event Log */}
-                    <div className="event-log">
-                        <div className="event-log-title">Event Log</div>
-                        {eventLog.length === 0 ? (
-                            <div style={{ color: '#666', fontSize: '11px' }}>Waiting for events...</div>
-                        ) : (
-                            eventLog.map((item, i) => (
-                                <div key={i} className="event-item">
-                                    <span className="event-time">{item.time}</span>
-                                    <span className="event-name">{item.event}</span>
-                                </div>
-                            ))
-                        )}
                     </div>
                 </div>
             );
         }
 
-        // Render
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<CommandCenter />);
+        // ===== INITIALIZE =====
+        
+        async function init() {
+            console.log('[AwareOS] Initializing...');
+            
+            // Register apps
+            registry.register(calendarApp);
+            console.log('[AwareOS] ✓ Calendar registered');
+            
+            // Initialize apps
+            calendarApp.init();
+            
+            // Expose to window
+            window.AwareOS = {
+                eventBus,
+                registry,
+                calendarState
+            };
+            
+            // Mount UI
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<Shell />);
+            
+            console.log('[AwareOS] Ready! 🧠');
+            console.log('[AwareOS] Try: AwareOS.registry.dispatch("calendar", "create_event", { title: "Test", start: new Date().toISOString() })');
+        }
+
+        init();
     </script>
 </body>
 </html>
