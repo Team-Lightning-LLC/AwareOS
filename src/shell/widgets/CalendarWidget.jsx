@@ -1,30 +1,29 @@
 // src/shell/widgets/CalendarWidget.jsx
-// Visual calendar interface
+// Calendar UI widget - talks to calendar app via dispatch
 
 import React, { useState, useEffect } from 'react';
-import { eventBus } from '../../core/eventBus.js';
 import { registry } from '../../core/registry.js';
+import { eventBus } from '../../core/eventBus.js';
 
 export default function CalendarWidget() {
   const [events, setEvents] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newEvent, setNewEvent] = useState({
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
     title: '',
     date: '',
     startTime: '',
     endTime: '',
-    location: '',
-    description: ''
+    location: ''
   });
 
-  // Load events when component mounts
   useEffect(() => {
     loadEvents();
-    
-    // Subscribe to calendar events
-    const unsubscribe = eventBus.on('calendar_event_created', () => {
-      loadEvents();
+
+    // Listen to calendar events
+    const unsubscribe = eventBus.on('*', (event) => {
+      if (event.startsWith('calendar_')) {
+        loadEvents();
+      }
     });
 
     return () => unsubscribe();
@@ -32,109 +31,89 @@ export default function CalendarWidget() {
 
   const loadEvents = () => {
     try {
-      const state = registry.dispatch('calendar', 'get_events', {});
-      setEvents(state || []);
+      const todayEvents = registry.dispatch('calendar', 'get_events', {});
+      setEvents(todayEvents);
     } catch (error) {
-      console.error('Failed to load events:', error);
+      console.error('[CalendarWidget] Failed to load events:', error);
+      setEvents([]);
     }
   };
 
-  const handleAddEvent = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    
-    const startDateTime = `${newEvent.date}T${newEvent.startTime}:00`;
-    const endDateTime = `${newEvent.date}T${newEvent.endTime}:00`;
+
+    const start = `${formData.date}T${formData.startTime}:00`;
+    const end = `${formData.date}T${formData.endTime}:00`;
 
     try {
       registry.dispatch('calendar', 'create_event', {
-        title: newEvent.title,
-        start: startDateTime,
-        end: endDateTime,
-        location: newEvent.location,
-        description: newEvent.description
+        title: formData.title,
+        start,
+        end,
+        location: formData.location
       });
 
       // Reset form
-      setNewEvent({
-        title: '',
-        date: '',
-        startTime: '',
-        endTime: '',
-        location: '',
-        description: ''
-      });
-      setShowAddForm(false);
+      setFormData({ title: '', date: '', startTime: '', endTime: '', location: '' });
+      setShowForm(false);
     } catch (error) {
-      console.error('Failed to create event:', error);
+      console.error('[CalendarWidget] Failed to create event:', error);
       alert('Failed to create event: ' + error.message);
     }
   };
 
-  const handleDeleteEvent = (eventId) => {
+  const handleDelete = (id) => {
     if (confirm('Delete this event?')) {
       try {
-        registry.dispatch('calendar', 'delete_event', { id: eventId });
-        loadEvents();
+        registry.dispatch('calendar', 'delete_event', { id });
       } catch (error) {
-        console.error('Failed to delete event:', error);
+        console.error('[CalendarWidget] Failed to delete event:', error);
+        alert('Failed to delete event: ' + error.message);
       }
     }
   };
 
-  const todayEvents = events.filter(event => {
-    const eventDate = new Date(event.start);
-    const today = new Date();
-    return eventDate.toDateString() === today.toDateString();
-  });
-
-  const upcomingEvents = events.filter(event => {
-    const eventDate = new Date(event.start);
-    const today = new Date();
-    const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    return eventDate > today && eventDate < weekFromNow;
-  }).slice(0, 5);
-
   return (
-    <div style={{ padding: '15px', height: '100%', overflow: 'auto' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ fontSize: '14px', color: '#4a9eff' }}>Today's Events</h3>
-        <button 
-          onClick={() => setShowAddForm(!showAddForm)}
+    <div style={{ padding: '15px' }}>
+      <button
+        onClick={() => setShowForm(!showForm)}
+        style={{
+          width: '100%',
+          padding: '10px',
+          background: '#4a9eff',
+          border: 'none',
+          borderRadius: '6px',
+          color: 'white',
+          cursor: 'pointer',
+          fontSize: '12px',
+          fontWeight: '500',
+          marginBottom: '15px'
+        }}
+      >
+        {showForm ? 'Cancel' : '+ Add Event'}
+      </button>
+
+      {showForm && (
+        <form
+          onSubmit={handleSubmit}
           style={{
-            background: '#4a9eff',
-            color: '#fff',
-            border: 'none',
-            padding: '6px 12px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '12px'
+            background: '#252540',
+            padding: '15px',
+            borderRadius: '6px',
+            marginBottom: '15px'
           }}
         >
-          {showAddForm ? 'Cancel' : '+ Add Event'}
-        </button>
-      </div>
-
-      {/* Add Event Form */}
-      {showAddForm && (
-        <form onSubmit={handleAddEvent} style={{ 
-          background: '#252540', 
-          padding: '15px', 
-          borderRadius: '6px',
-          marginBottom: '15px'
-        }}>
-          <div style={{ marginBottom: '10px' }}>
-            <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: '#aaa' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>
               Title *
             </label>
             <input
-              type="text"
               required
-              value={newEvent.title}
-              onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               style={{
                 width: '100%',
-                padding: '6px',
+                padding: '8px',
                 background: '#1a1a2e',
                 border: '1px solid #444',
                 borderRadius: '4px',
@@ -144,19 +123,19 @@ export default function CalendarWidget() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: '#aaa' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>
                 Date *
               </label>
               <input
                 type="date"
                 required
-                value={newEvent.date}
-                onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                 style={{
                   width: '100%',
-                  padding: '6px',
+                  padding: '8px',
                   background: '#1a1a2e',
                   border: '1px solid #444',
                   borderRadius: '4px',
@@ -165,17 +144,16 @@ export default function CalendarWidget() {
                 }}
               />
             </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: '#aaa' }}>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>
                 Location
               </label>
               <input
-                type="text"
-                value={newEvent.location}
-                onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 style={{
                   width: '100%',
-                  padding: '6px',
+                  padding: '8px',
                   background: '#1a1a2e',
                   border: '1px solid #444',
                   borderRadius: '4px',
@@ -186,19 +164,19 @@ export default function CalendarWidget() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: '#aaa' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>
                 Start Time *
               </label>
               <input
                 type="time"
                 required
-                value={newEvent.startTime}
-                onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
+                value={formData.startTime}
+                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
                 style={{
                   width: '100%',
-                  padding: '6px',
+                  padding: '8px',
                   background: '#1a1a2e',
                   border: '1px solid #444',
                   borderRadius: '4px',
@@ -207,18 +185,18 @@ export default function CalendarWidget() {
                 }}
               />
             </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: '#aaa' }}>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>
                 End Time *
               </label>
               <input
                 type="time"
                 required
-                value={newEvent.endTime}
-                onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
+                value={formData.endTime}
+                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
                 style={{
                   width: '100%',
-                  padding: '6px',
+                  padding: '8px',
                   background: '#1a1a2e',
                   border: '1px solid #444',
                   borderRadius: '4px',
@@ -229,15 +207,15 @@ export default function CalendarWidget() {
             </div>
           </div>
 
-          <button 
+          <button
             type="submit"
             style={{
               width: '100%',
+              padding: '10px',
               background: '#10b981',
-              color: '#fff',
               border: 'none',
-              padding: '8px',
               borderRadius: '4px',
+              color: 'white',
               cursor: 'pointer',
               fontSize: '12px',
               fontWeight: '500'
@@ -248,92 +226,59 @@ export default function CalendarWidget() {
         </form>
       )}
 
-      {/* Today's Events */}
-      <div style={{ marginBottom: '20px' }}>
-        {todayEvents.length === 0 ? (
-          <div style={{ 
-            padding: '20px', 
-            textAlign: 'center', 
-            color: '#666',
-            fontSize: '12px'
-          }}>
-            No events today
-          </div>
-        ) : (
-          todayEvents.map(event => (
-            <EventCard key={event.id} event={event} onDelete={handleDeleteEvent} />
-          ))
-        )}
-      </div>
+      <h4 style={{ fontSize: '12px', color: '#888', marginBottom: '10px' }}>Today's Events</h4>
 
-      {/* Upcoming Events */}
-      {upcomingEvents.length > 0 && (
-        <>
-          <h3 style={{ fontSize: '13px', color: '#888', marginBottom: '10px' }}>
-            Upcoming This Week
-          </h3>
-          {upcomingEvents.map(event => (
-            <EventCard key={event.id} event={event} onDelete={handleDeleteEvent} compact />
-          ))}
-        </>
-      )}
-    </div>
-  );
-}
-
-function EventCard({ event, onDelete, compact = false }) {
-  const startTime = new Date(event.start);
-  const endTime = new Date(event.end);
-
-  return (
-    <div style={{
-      background: '#252540',
-      border: '1px solid #333',
-      borderRadius: '6px',
-      padding: compact ? '8px' : '12px',
-      marginBottom: '8px',
-      position: 'relative'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ 
-            fontSize: compact ? '12px' : '13px', 
-            fontWeight: '500',
-            marginBottom: '4px',
-            color: '#eee'
-          }}>
-            {event.title}
-          </div>
-          <div style={{ fontSize: '11px', color: '#888' }}>
-            {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-            {' - '}
-            {endTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-          </div>
-          {event.location && (
-            <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
-              📍 {event.location}
-            </div>
-          )}
-          {!compact && event.description && (
-            <div style={{ fontSize: '11px', color: '#aaa', marginTop: '6px' }}>
-              {event.description}
-            </div>
-          )}
+      {events.length === 0 ? (
+        <div style={{ padding: '40px 20px', textAlign: 'center', color: '#666', fontSize: '12px' }}>
+          No events today
         </div>
-        <button
-          onClick={() => onDelete(event.id)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#666',
-            cursor: 'pointer',
-            fontSize: '14px',
-            padding: '0 4px'
-          }}
-        >
-          ×
-        </button>
-      </div>
+      ) : (
+        events.map(event => {
+          const start = new Date(event.start);
+          const end = new Date(event.end);
+          return (
+            <div
+              key={event.id}
+              style={{
+                background: '#252540',
+                border: '1px solid #333',
+                borderRadius: '6px',
+                padding: '12px',
+                marginBottom: '10px'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: '500', marginBottom: '4px' }}>{event.title}</div>
+                  <div style={{ fontSize: '11px', color: '#888' }}>
+                    {start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                    {' - '}
+                    {end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                  </div>
+                  {event.location && (
+                    <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+                      📍 {event.location}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleDelete(event.id)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#666',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    padding: '0 4px'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          );
+        })
+      )}
     </div>
   );
 }
