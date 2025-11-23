@@ -1,135 +1,63 @@
 // src/main.js
-// AwareOS - Main entry point
+// Entry point - initializes core, registers apps, mounts Shell
 
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import { eventBus } from './core/eventBus.js';
 import { registry } from './core/registry.js';
 import { contextStore } from './core/contextStore.js';
 import { orchestrator } from './core/orchestrator.js';
-
-// Apps
 import calendarApp from './apps/calendar/CalendarApp.js';
+import Shell from './shell/Shell.jsx';
 
-class AwareOS {
-  constructor() {
-    this.isInitialized = false;
-  }
+async function init() {
+  console.log('[AwareOS] Initializing...');
 
-  async init(config = {}) {
-    console.log('[AwareOS] Starting up...');
+  // 1. Initialize context store (local memory)
+  await contextStore.init();
+  console.log('[AwareOS] ✓ Context store ready');
 
-    // Initialize context store (local memory)
-    await contextStore.init();
-    this.updateStatus('contextStatus', 'contextLabel', true, 'Active');
-    console.log('[AwareOS] Context store ready');
+  // 2. Register apps
+  registry.register(calendarApp);
+  console.log('[AwareOS] ✓ Apps registered:', registry.getAll().length);
 
-    // Register apps
-    registry.register(calendarApp);
-    this.updateStatus('registryStatus', 'registryLabel', true, 'Active');
-    console.log('[AwareOS] Apps registered');
-
-    // Initialize apps
-    calendarApp.init();
-    this.updateStatus('calendarStatus', 'calendarLabel', true, 'Registered');
-    console.log('[AwareOS] Apps initialized');
-
-    // Initialize orchestrator (pass API key if provided)
-    await orchestrator.init(config.apiKey || null);
-    const hasApiKey = !!config.apiKey;
-    this.updateStatus('orchestratorStatus', 'orchestratorLabel', hasApiKey, hasApiKey ? 'Active' : 'Active (no API key)');
-    console.log('[AwareOS] Orchestrator ready');
-
-    // Event bus is always ready
-    this.updateStatus('eventBusStatus', 'eventBusLabel', true, 'Active');
-
-    // Setup live event log
-    this.setupEventLog();
-
-    // Listen for orchestrator suggestions
-    eventBus.on('orchestrator_suggestion', (data) => {
-      console.log('[AwareOS] Suggestion:', data.message);
-      console.log('[AwareOS] Actions:', data.actions);
-    });
-
-    this.isInitialized = true;
-    console.log('[AwareOS] System ready!');
-    console.log('');
-    console.log('Try these in the console:');
-    console.log('  AwareOS.calendar.dispatch("create_event", { title: "Test Meeting", start: "2025-11-22T14:00:00" })');
-    console.log('  AwareOS.calendar.getState()');
-    console.log('  AwareOS.registry.getAllManifests()');
-
-    return this;
-  }
-
-  // Update status panel in UI
-  updateStatus(dotId, labelId, active, text) {
-    const dot = document.getElementById(dotId);
-    const label = document.getElementById(labelId);
-    
-    if (dot) {
-      dot.classList.toggle('inactive', !active);
-    }
-    if (label) {
-      label.textContent = text;
+  // 3. Initialize registered apps
+  const apps = registry.getAll();
+  for (const app of apps) {
+    if (app.init) {
+      app.init();
     }
   }
+  console.log('[AwareOS] ✓ Apps initialized');
 
-  // Setup live event log in UI
-  setupEventLog() {
-    const container = document.getElementById('eventLogContainer');
-    if (!container) return;
+  // 4. Initialize orchestrator (optional - requires API key)
+  // User can call: orchestrator.init('your-api-key') later
+  // For now, orchestrator listens but won't call Claude
+  orchestrator.init();
+  console.log('[AwareOS] ✓ Orchestrator ready (no API key)');
+  console.log('[AwareOS] To enable AI: orchestrator.init("your-claude-api-key")');
 
-    // Clear waiting message
-    container.innerHTML = '';
+  // 5. Mount the Shell UI
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(<Shell />);
+  console.log('[AwareOS] ✓ Shell mounted');
 
-    // Listen to all events
-    eventBus.on('*', (event, data) => {
-      const item = document.createElement('div');
-      item.className = 'event-item';
-      
-      const time = new Date().toLocaleTimeString();
-      item.innerHTML = `
-        <span class="event-time">${time}</span>
-        <span class="event-name">${event}</span>
-      `;
-      
-      // Add to top
-      container.insertBefore(item, container.firstChild);
-      
-      // Keep only last 20 events
-      while (container.children.length > 20) {
-        container.removeChild(container.lastChild);
-      }
-    });
-  }
+  // 6. Expose to window for debugging
+  window.AwareOS = {
+    eventBus,
+    registry,
+    contextStore,
+    orchestrator,
+    calendarApp
+  };
 
-  // Expose pieces for console testing
-  get calendar() {
-    return calendarApp;
-  }
-
-  get registry() {
-    return registry;
-  }
-
-  get eventBus() {
-    return eventBus;
-  }
-
-  get context() {
-    return contextStore;
-  }
-
-  get orchestrator() {
-    return orchestrator;
-  }
+  console.log('[AwareOS] Ready! 🧠');
+  console.log('[AwareOS] Try: AwareOS.calendarApp.dispatch("create_event", { title: "Test", start: new Date().toISOString() })');
 }
 
-// Create and expose global instance
-const awareOS = new AwareOS();
-window.AwareOS = awareOS;
-
-// Auto-initialize
-awareOS.init().catch(console.error);
-
-export default awareOS;
+// Start when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
