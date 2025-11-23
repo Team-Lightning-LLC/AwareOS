@@ -1,0 +1,141 @@
+/* src/shell/Shell.css */
+
+.shell {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #12121f;
+  overflow: hidden;
+}
+
+.canvas {
+  width: 100%;
+  height: calc(100vh - 60px);
+  position: relative;
+  background-image: radial-gradient(circle at 1px 1px, #2a2a4a 1px, transparent 0);
+  background-size: 40px 40px;
+}
+
+.widget {
+  position: absolute;
+  background: #16162a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.widget:hover {
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5);
+}
+
+.widget.minimized {
+  height: 40px !important;
+}
+
+.widget-header {
+  background: #1f1f3a;
+  padding: 8px 12px;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: grab;
+  user-select: none;
+}
+
+.widget-header:active {
+  cursor: grabbing;
+}
+
+.widget-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #eee;
+}
+
+.widget-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.widget-btn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 6px;
+  transition: color 0.2s;
+}
+
+.widget-btn:hover {
+  color: #eee;
+}
+
+.widget-content {
+  flex: 1;
+  overflow: auto;
+  color: #eee;
+}
+
+.resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 15px;
+  height: 15px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, #444 50%);
+}
+
+.toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(26, 26, 46, 0.95);
+  border-top: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 20px;
+  backdrop-filter: blur(10px);
+}
+
+.toolbar-btn {
+  background: #252540;
+  border: 1px solid #333;
+  color: #eee;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background: #2f2f50;
+  border-color: #4a9eff;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
